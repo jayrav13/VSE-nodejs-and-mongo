@@ -19,7 +19,7 @@ app.get('/login', function(req, res) {
 	
 	user.each(function(err, doc) {
 		if(doc != null) {
-			db.collection('allUsers').update(doc, {$push: {'token':token}});
+			db.collection('allUsers').update(doc, {$set: {'token':token}});
 			found = 1;
 			res.status(200).send({'success':token});
 		}
@@ -49,7 +49,7 @@ app.get('/logout', function(req, res) {
 
 });
 
-app.post('/register', function(req, res) {
+app.get('/register', function(req, res) {
 	
 	var found = 0;
 	var user = db.collection('allUsers').find({'username':req.param('username')});
@@ -57,14 +57,32 @@ app.post('/register', function(req, res) {
 
 	user.each(function(err, doc) {
 		if(doc != null) {
-			found = 1
-			res.status(400).send('fail':'User already exists.');
+			found = 1;
+			res.status(400).send({'fail':'User already exists.'});
 		}
-		else if(doc == null and found == 0) {
-			db.collection('allUsers').insert({'username':req.param('username'), 'password':req.param('password'), 'token':token});
+		else if(doc == null && found == 0) {
+			db.collection('allUsers').insert({'username':req.param('username'), 'password':req.param('password'), 'token':token, 'money':10000, 'stocks':{}});
 			res.status(400).send({'success':token});
 		}
 	});	
+
+});
+
+app.get('/buy', function(req, res) {
+	
+	var found = 0;
+	var user = db.collection('allUsers').find({'token':req.param('token')});
+	
+	user.each(function(err, doc) {
+		if(doc != null) {
+			found = 1;
+			db.collection('allUsers').update({'token':req.param('token')}, {$inc: {}});			
+			res.status(200).send({'success':'Made it!'});
+		} 
+		else if(doc == null && found == 0) {
+			res.status(400).send({'fail':'Token error.'});
+		}
+	});
 
 });
 
